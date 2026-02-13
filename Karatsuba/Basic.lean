@@ -42,14 +42,14 @@ lemma split_sum_le (n : ℕ) (i : Base) : n / i + n % i ≤ n := by
 
 lemma split_sum_decreasing (n : ℕ) (i : Base) (hin : i ≤ n) :
   n / i + n % i < n := by
-  calc
-    n / i + n % i < (n / i) * i + n % i := by
+  calc n / i + n % i
+    _ < (n / i) * i + n % i := by
       apply Nat.add_lt_add_right
       apply lt_mul_of_one_lt_right
       · apply Nat.div_pos
         repeat omega
       · omega
-    _ = n := by simpa [Nat.mul_comm] using (Nat.div_add_mod n i)
+    _ = n := Nat.div_add_mod' n i
 
 section
 variable (b : Base)
