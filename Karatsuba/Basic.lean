@@ -67,11 +67,9 @@ def karatsuba (x y : ℕ) : ℕ :=
         dsimp [half_digits, max_digits]
         rw [Nat.div_pos_iff]
         constructor
-        · simp
+        · exact Nat.zero_lt_two
         · simp only [Nat.reduceLeDiff]
-          apply Nat.succ_le_of_lt
           apply Nat.log_pos b.property
-          apply Nat.le_of_lt
           omega
       · exact b.property
     ⟩
@@ -145,132 +143,132 @@ decreasing_by
               apply Nat.add_le_add_left
               exact split_sum_le y pos
 
--- theorem equiv_to_mult : ∀ x y, karatsuba b x y = x * y := by
---   intro x y
---   refine Nat.strong_induction_on (n := x + y)
---     (p := fun n => ∀ x y, x + y = n → karatsuba (b := b) x y = x * y) ?_ x y rfl
---   intro n ih x y hxy
---   by_cases hgrain : x ≤ b ∨ y ≤ b
---   · simp [n, hgrain]
---   · let max_n : ℕ := max x y
---     let max_digits : ℕ := Nat.log b max_n + 1
---     let half_digits : ℕ := max_digits / 2
---     let splitBase : Base := ⟨(b : ℕ) ^ half_digits, by
---       have hmax_gt_b : (b : ℕ) < max_n := by
---         omega
---       have hlog_pos : 0 < Nat.log b max_n := by
---         exact Nat.log_pos b.property (Nat.le_of_lt hmax_gt_b)
---       have hhalf_pos : 0 < half_digits := by
---         omega
---       simpa using Nat.one_lt_pow (Nat.ne_of_gt hhalf_pos) b.property⟩
---     let x1 : ℕ := x / splitBase
---     let x0 : ℕ := x % splitBase
---     let y1 : ℕ := y / splitBase
---     let y0 : ℕ := y % splitBase
---     rw [n]
---     simp only [hgrain]
---     simp [split, x1, x0, y1, y0]
---     have hx_pos : 0 < x := by omega
---     have hdivx : x / splitBase < x := by
---       dsimp [x1]
---       exact Nat.div_lt_self hx_pos splitBase.property
---     have hz2_lt : x1 + y1 < n := by
---       have hdivy : y1 ≤ y := by
---         dsimp [y1]
---         exact Nat.div_le_self y splitBase
---       calc
---         x1 + y1 < x + y1 := by simpa [x1] using Nat.add_lt_add_right hdivx y1
---         _ ≤ x + y := Nat.add_le_add_left hdivy x
---         _ = n := hxy
---     have hsplit_le_max : (splitBase : ℕ) ≤ max x y := by
---       have hmax_gt_b : (b : ℕ) < max_n := by
---         omega
---       have hhalf_le_log : half_digits ≤ Nat.log b max_n := by omega
---       calc
---         (b : ℕ) ^ half_digits ≤ (b : ℕ) ^ Nat.log b max_n := by
---           exact Nat.pow_le_pow_right (Nat.zero_lt_of_lt b.property) hhalf_le_log
---         _ ≤ max_n := Nat.pow_log_le_self b (Nat.ne_of_gt (Nat.lt_trans (Nat.zero_lt_of_lt b.property) hmax_gt_b))
---         _ = max x y := by rfl
---     have hz0_lt : x0 + y0 < n := by
---       by_cases hxy' : x ≤ y
---       · have hy_ge : (splitBase : ℕ) ≤ y := by simpa [max_eq_right hxy'] using hsplit_le_max
---         have hmodx : x0 ≤ x := by
---           dsimp [x0]
---           exact Nat.mod_le x splitBase
---         have hmody : y0 < y := by
---           dsimp [y0]
---           calc
---             y % splitBase < splitBase := Nat.mod_lt y (Nat.zero_lt_of_lt splitBase.property)
---             _ ≤ y := hy_ge
---         calc
---           x0 + y0 < x0 + y := Nat.add_lt_add_left hmody _
---           _ ≤ x + y := Nat.add_le_add_right hmodx _
---           _ = n := hxy
---       · have hx_ge : (splitBase : ℕ) ≤ x := by
---           have hyx : y ≤ x := Nat.le_of_not_ge hxy'
---           simpa [max_eq_left hyx] using hsplit_le_max
---         have hmodx : x0 < x := by
---           dsimp [x0]
---           calc
---             x % splitBase < splitBase := Nat.mod_lt x (Nat.zero_lt_of_lt splitBase.property)
---             _ ≤ x := hx_ge
---         have hmody : y0 ≤ y := by
---           dsimp [y0]
---           exact Nat.mod_le y splitBase
---         calc
---           x0 + y0 < x + y0 := Nat.add_lt_add_right hmodx _
---           _ ≤ x + y := Nat.add_le_add_left hmody _
---           _ = n := hxy
---     have hz1_lt : (x1 + x0) + (y1 + y0) < n := by
---       by_cases hxy' : x ≤ y
---       · have hy_ge : (splitBase : ℕ) ≤ y := by simpa [max_eq_right hxy'] using hsplit_le_max
---         have hsumx : x1 + x0 ≤ x := by
---           dsimp [x1, x0]
---           exact split_sum_le (b := splitBase) x
---         have hsumy : y1 + y0 < y := by
---           dsimp [y1, y0]
---           exact split_sum_decreasing (b := splitBase) y hy_ge
---         calc
---           (x1 + x0) + (y1 + y0) < (x1 + x0) + y := Nat.add_lt_add_left hsumy _
---           _ ≤ x + y := Nat.add_le_add_right hsumx _
---           _ = n := hxy
---       · have hx_ge : (splitBase : ℕ) ≤ x := by
---           have hyx : y ≤ x := Nat.le_of_not_ge hxy'
---           simpa [max_eq_left hyx] using hsplit_le_max
---         have hsumx : x1 + x0 < x := by
---           dsimp [x1, x0]
---           exact split_sum_decreasing (b := splitBase) x hx_ge
---         have hsumy : y1 + y0 ≤ y := by
---           dsimp [y1, y0]
---           exact split_sum_le (b := splitBase) y
---         calc
---           (x1 + x0) + (y1 + y0) < x + (y1 + y0) := Nat.add_lt_add_right hsumx _
---           _ ≤ x + y := Nat.add_le_add_left hsumy _
---           _ = n := hxy
---     rw [ih (x / splitBase + y / splitBase) (by simpa [x1, y1] using hz2_lt) (x / splitBase) (y / splitBase) rfl]
---     rw [ih (x % splitBase + y % splitBase) (by simpa [x0, y0] using hz0_lt) (x % splitBase) (y % splitBase) rfl]
---     rw [ih
---       ((x / splitBase + x % splitBase) + (y / splitBase + y % splitBase))
---       (by simpa [x1, x0, y1, y0] using hz1_lt)
---       (x / splitBase + x % splitBase)
---       (y / splitBase + y % splitBase)
---       rfl]
---     let z2 : ℕ := x1 * y1
---     let z0 : ℕ := x0 * y0
---     let z1 : ℕ := (x1 + x0) * (y1 + y0) - z2 - z0
---     calc  z2 * splitBase * splitBase + z1 * splitBase + z0
---       _ = z2 * splitBase * splitBase + (((x1 + x0) * (y1 + y0) - z2 - z0)) * splitBase + z0 := rfl
---       _ = z2 * splitBase * splitBase + (x1 * y0 + x0 * y1) * splitBase + z0 := by grind
---       _ = (x1 * splitBase + x0) * (y1 * splitBase + y0) := by
---         dsimp [z2, z0]
---         ring
---       _ = x * (y1 * splitBase + y0) := by
---         dsimp [x1, x0]
---         rw [Nat.mul_comm (x / splitBase) splitBase]
---         rw [Nat.div_add_mod x splitBase]
---       _ = x * y := by
---         dsimp [y1, y0]
---         rw [Nat.mul_comm (y / splitBase) splitBase]
---         rw [Nat.div_add_mod y splitBase]
+theorem equiv_to_mult : ∀ x y, karatsuba b x y = x * y := by
+  intro x y
+  refine Nat.strong_induction_on (n := x + y)
+    (p := fun n => ∀ x y, x + y = n → karatsuba (b := b) x y = x * y) ?_ x y rfl
+  intro n ih x y hxy
+  by_cases hgrain : x ≤ b ∨ y ≤ b
+  · simp [karatsuba, hgrain]
+  · let max_n : ℕ := max x y
+    let max_digits : ℕ := Nat.log b max_n + 1
+    let half_digits : ℕ := max_digits / 2
+    let splitBase : Base := ⟨(b : ℕ) ^ half_digits, by
+      have hmax_gt_b : (b : ℕ) < max_n := by
+        omega
+      have hlog_pos : 0 < Nat.log b max_n := by
+        exact Nat.log_pos b.property (Nat.le_of_lt hmax_gt_b)
+      have hhalf_pos : 0 < half_digits := by
+        omega
+      simpa using Nat.one_lt_pow (Nat.ne_of_gt hhalf_pos) b.property⟩
+    let x1 : ℕ := x / splitBase
+    let x0 : ℕ := x % splitBase
+    let y1 : ℕ := y / splitBase
+    let y0 : ℕ := y % splitBase
+    rw [karatsuba]
+    simp only [hgrain]
+    simp [split, x1, x0, y1, y0]
+    have hx_pos : 0 < x := by omega
+    have hdivx : x / splitBase < x := by
+      dsimp [x1]
+      exact Nat.div_lt_self hx_pos splitBase.property
+    have hz2_lt : x1 + y1 < n := by
+      have hdivy : y1 ≤ y := by
+        dsimp [y1]
+        exact Nat.div_le_self y splitBase
+      calc
+        x1 + y1 < x + y1 := by simpa [x1] using Nat.add_lt_add_right hdivx y1
+        _ ≤ x + y := Nat.add_le_add_left hdivy x
+        _ = n := hxy
+    have hsplit_le_max : (splitBase : ℕ) ≤ max x y := by
+      have hmax_gt_b : (b : ℕ) < max_n := by
+        omega
+      have hhalf_le_log : half_digits ≤ Nat.log b max_n := by omega
+      calc
+        (b : ℕ) ^ half_digits ≤ (b : ℕ) ^ Nat.log b max_n := by
+          exact Nat.pow_le_pow_right (Nat.zero_lt_of_lt b.property) hhalf_le_log
+        _ ≤ max_n := Nat.pow_log_le_self b (Nat.ne_of_gt (Nat.lt_trans (Nat.zero_lt_of_lt b.property) hmax_gt_b))
+        _ = max x y := by rfl
+    have hz0_lt : x0 + y0 < n := by
+      by_cases hxy' : x ≤ y
+      · have hy_ge : (splitBase : ℕ) ≤ y := by simpa [max_eq_right hxy'] using hsplit_le_max
+        have hmodx : x0 ≤ x := by
+          dsimp [x0]
+          exact Nat.mod_le x splitBase
+        have hmody : y0 < y := by
+          dsimp [y0]
+          calc
+            y % splitBase < splitBase := Nat.mod_lt y (Nat.zero_lt_of_lt splitBase.property)
+            _ ≤ y := hy_ge
+        calc
+          x0 + y0 < x0 + y := Nat.add_lt_add_left hmody _
+          _ ≤ x + y := Nat.add_le_add_right hmodx _
+          _ = n := hxy
+      · have hx_ge : (splitBase : ℕ) ≤ x := by
+          have hyx : y ≤ x := Nat.le_of_not_ge hxy'
+          simpa [max_eq_left hyx] using hsplit_le_max
+        have hmodx : x0 < x := by
+          dsimp [x0]
+          calc
+            x % splitBase < splitBase := Nat.mod_lt x (Nat.zero_lt_of_lt splitBase.property)
+            _ ≤ x := hx_ge
+        have hmody : y0 ≤ y := by
+          dsimp [y0]
+          exact Nat.mod_le y splitBase
+        calc
+          x0 + y0 < x + y0 := Nat.add_lt_add_right hmodx _
+          _ ≤ x + y := Nat.add_le_add_left hmody _
+          _ = n := hxy
+    have hz1_lt : (x1 + x0) + (y1 + y0) < n := by
+      by_cases hxy' : x ≤ y
+      · have hy_ge : (splitBase : ℕ) ≤ y := by simpa [max_eq_right hxy'] using hsplit_le_max
+        have hsumx : x1 + x0 ≤ x := by
+          dsimp [x1, x0]
+          exact split_sum_le x splitBase
+        have hsumy : y1 + y0 < y := by
+          dsimp [y1, y0]
+          exact split_sum_decreasing y splitBase hy_ge
+        calc
+          (x1 + x0) + (y1 + y0) < (x1 + x0) + y := Nat.add_lt_add_left hsumy _
+          _ ≤ x + y := Nat.add_le_add_right hsumx _
+          _ = n := hxy
+      · have hx_ge : (splitBase : ℕ) ≤ x := by
+          have hyx : y ≤ x := Nat.le_of_not_ge hxy'
+          simpa [max_eq_left hyx] using hsplit_le_max
+        have hsumx : x1 + x0 < x := by
+          dsimp [x1, x0]
+          exact split_sum_decreasing x splitBase hx_ge
+        have hsumy : y1 + y0 ≤ y := by
+          dsimp [y1, y0]
+          exact split_sum_le y splitBase
+        calc
+          (x1 + x0) + (y1 + y0) < x + (y1 + y0) := Nat.add_lt_add_right hsumx _
+          _ ≤ x + y := Nat.add_le_add_left hsumy _
+          _ = n := hxy
+    rw [ih (x / splitBase + y / splitBase) (by simpa [x1, y1] using hz2_lt) (x / splitBase) (y / splitBase) rfl]
+    rw [ih (x % splitBase + y % splitBase) (by simpa [x0, y0] using hz0_lt) (x % splitBase) (y % splitBase) rfl]
+    rw [ih
+      ((x / splitBase + x % splitBase) + (y / splitBase + y % splitBase))
+      (by simpa [x1, x0, y1, y0] using hz1_lt)
+      (x / splitBase + x % splitBase)
+      (y / splitBase + y % splitBase)
+      rfl]
+    let z2 : ℕ := x1 * y1
+    let z0 : ℕ := x0 * y0
+    let z1 : ℕ := (x1 + x0) * (y1 + y0) - z2 - z0
+    calc  z2 * splitBase * splitBase + z1 * splitBase + z0
+      _ = z2 * splitBase * splitBase + (((x1 + x0) * (y1 + y0) - z2 - z0)) * splitBase + z0 := rfl
+      _ = z2 * splitBase * splitBase + (x1 * y0 + x0 * y1) * splitBase + z0 := by grind
+      _ = (x1 * splitBase + x0) * (y1 * splitBase + y0) := by
+        dsimp [z2, z0]
+        ring
+      _ = x * (y1 * splitBase + y0) := by
+        dsimp [x1, x0]
+        rw [Nat.mul_comm (x / splitBase) splitBase]
+        rw [Nat.div_add_mod x splitBase]
+      _ = x * y := by
+        dsimp [y1, y0]
+        rw [Nat.mul_comm (y / splitBase) splitBase]
+        rw [Nat.div_add_mod y splitBase]
 
 end
