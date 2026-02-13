@@ -158,6 +158,22 @@ decreasing_by
   · exact z0_lt x y pos this
   · exact z1_part_lt x y pos this
 
+partial def karatsubaPar (x y : ℕ) : ℕ :=
+  if hgrain : x ≤ b ∨ y ≤ b then
+    x * y
+  else
+    let pos := splitBase b x y hgrain
+    let sx := split x pos
+    let sy := split y pos
+    let z2Task := Task.spawn (fun _ => karatsubaPar sx.1 sy.1)
+    let z0Task := Task.spawn (fun _ => karatsubaPar sx.2 sy.2)
+    let z1Task := Task.spawn (fun _ => karatsubaPar (sx.1 + sx.2) (sy.1 + sy.2))
+    let z2 := z2Task.get
+    let z0 := z0Task.get
+    let z1Part := z1Task.get
+    let z1 := z1Part - z2 - z0
+    z2 * pos * pos + z1 * pos + z0
+
 theorem equiv_to_mult : ∀ x y, karatsuba b x y = x * y := by
   intro x y
   refine Nat.strong_induction_on (n := x + y)
