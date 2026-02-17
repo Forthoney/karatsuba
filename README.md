@@ -1,13 +1,14 @@
 # karatsuba
+An provably correct implementation of the Karatsuba multiplication algorithm in Lean.
 
-## GitHub configuration
+The [Karatsuba algorithm](https://en.wikipedia.org/wiki/Karatsuba_algorithm)
+is a "fast" multiplication algorithm for arbitrary precision integer multiplication
+where fast means "better than O(n^2)".
+It is reasonably practical and
+libraries such as GMP use it for multiplication of very large numbers.
 
-To set up your new GitHub repository, follow these steps:
-
-* Under your repository name, click **Settings**.
-* In the **Actions** section of the sidebar, click "General".
-* Check the box **Allow GitHub Actions to create and approve pull requests**.
-* Click the **Pages** section of the settings sidebar.
-* In the **Source** dropdown menu, select "GitHub Actions".
-
-After following the steps above, you can remove this section from the README file.
+Ironically, this implies Lean programmers probably should not use my implementation
+when running code.
+Lean's runtime also uses GMP for arithmetic on Nats,
+meaning for sufficiently large Nats,
+GMP's ultra-optimized karatsuba algorithm will kick in anyways.
